@@ -504,7 +504,7 @@ final class ProcessTapManager: ObservableObject {
             let leftGain = volume * min(1.0, 1.0 - balance)
             let rightGain = volume * min(1.0, 1.0 + balance)
 
-            // Copy input -> output with volume and balance scaling
+            // Copy input -> output with volume, balance, and EQ
             // When input has more buffers than output, tap data is in the LAST buffers
             let inputOffset = max(0, inBufs.count - outBufs.count)
             for i in 0..<outBufs.count {
@@ -512,28 +512,61 @@ final class ProcessTapManager: ObservableObject {
                 let outBuf = outBufs[i]
                 guard let inData = inBuf.mData, let outData = outBuf.mData else { continue }
                 let copySize = Int(min(inBuf.mDataByteSize, outBuf.mDataByteSize))
-
-                // Determine channel gain: even index = left, odd = right
-                let channelGain = (i % 2 == 0) ? leftGain : rightGain
+                let channels = Int(outBuf.mNumberChannels)
 
                 let outF = outData.assumingMemoryBound(to: Float32.self)
-                let count = copySize / MemoryLayout<Float32>.size
+                let inF = inData.assumingMemoryBound(to: Float32.self)
+                let totalSamples = copySize / MemoryLayout<Float32>.size
 
-                if channelGain == 1.0 && balance == 0 {
-                    memcpy(outData, inData, copySize)
-                } else if channelGain > 0 {
-                    let inF = inData.assumingMemoryBound(to: Float32.self)
-                    for j in 0..<count { outF[j] = inF[j] * channelGain }
-                }
+                if channels >= 2 {
+                    // Interleaved stereo: apply L/R balance per-sample
+                    let frames = totalSamples / channels
+                    for f in 0..<frames {
+                        let base = f * channels
+                        outF[base] = inF[base] * leftGain       // left
+                        outF[base + 1] = inF[base + 1] * rightGain // right
+                        // Copy any additional channels with base volume
+                        for c in 2..<channels {
+                            outF[base + c] = inF[base + c] * volume
+                        }
+                    }
 
-                // Apply EQ
-                if tap.eq.enabled, channelGain > 0 {
-                    tap.eq.processBuffer(outF, frameCount: count, channelIndex: i % 2)
+                    // Apply EQ: deinterleave, process each channel, reinterleave
+                    if tap.eq.enabled {
+                        var leftBuf = [Float](repeating: 0, count: frames)
+                        var rightBuf = [Float](repeating: 0, count: frames)
+                        for f in 0..<frames {
+                            leftBuf[f] = outF[f * channels]
+                            rightBuf[f] = outF[f * channels + 1]
+                        }
+                        leftBuf.withUnsafeMutableBufferPointer { buf in
+                            tap.eq.processBuffer(buf.baseAddress!, frameCount: frames, channelIndex: 0)
+                        }
+                        rightBuf.withUnsafeMutableBufferPointer { buf in
+                            tap.eq.processBuffer(buf.baseAddress!, frameCount: frames, channelIndex: 1)
+                        }
+                        for f in 0..<frames {
+                            outF[f * channels] = leftBuf[f]
+                            outF[f * channels + 1] = rightBuf[f]
+                        }
+                    }
+                } else {
+                    // Mono or non-interleaved: buffer index determines channel
+                    let channelGain = (i % 2 == 0) ? leftGain : rightGain
+                    if channelGain == 1.0 && balance == 0 {
+                        memcpy(outData, inData, copySize)
+                    } else if channelGain > 0 {
+                        for j in 0..<totalSamples { outF[j] = inF[j] * channelGain }
+                    }
+
+                    if tap.eq.enabled, volume > 0 {
+                        tap.eq.processBuffer(outF, frameCount: totalSamples, channelIndex: i % 2)
+                    }
                 }
 
                 // Soft clip to prevent harsh distortion when volume > 1.0 or EQ boost
-                if channelGain > 1.0 || tap.eq.enabled {
-                    for j in 0..<count {
+                if volume > 1.0 || tap.eq.enabled {
+                    for j in 0..<totalSamples {
                         let x = outF[j]
                         if x > 1.0 { outF[j] = 1.0 - 1.0 / (x + 1.0) }
                         else if x < -1.0 { outF[j] = -1.0 + 1.0 / (-x + 1.0) }
