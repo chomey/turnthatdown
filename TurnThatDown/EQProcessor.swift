@@ -14,11 +14,11 @@ struct EQBand {
 
 final class EQProcessor {
     static let defaultBands: [EQBand] = [
-        EQBand(frequency: 60, label: "60", gain: 0, isShelf: true),
-        EQBand(frequency: 230, label: "230", gain: 0, isShelf: false),
-        EQBand(frequency: 910, label: "910", gain: 0, isShelf: false),
-        EQBand(frequency: 3600, label: "3.6k", gain: 0, isShelf: false),
-        EQBand(frequency: 14000, label: "14k", gain: 0, isShelf: true),
+        EQBand(frequency: 60, label: "Bass", gain: 0, isShelf: true),
+        EQBand(frequency: 230, label: "Low", gain: 0, isShelf: false),
+        EQBand(frequency: 910, label: "Mid", gain: 0, isShelf: false),
+        EQBand(frequency: 3600, label: "High", gain: 0, isShelf: false),
+        EQBand(frequency: 14000, label: "Air", gain: 0, isShelf: true),
     ]
 
     var bands: [EQBand]
