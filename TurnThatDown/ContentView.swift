@@ -151,7 +151,26 @@ struct AppVolumeSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: "Applications", icon: "square.stack")
+            HStack {
+                SectionHeader(title: "Applications", icon: "square.stack")
+                Spacer()
+                if !tapManager.hiddenBundleIDs.isEmpty {
+                    Menu {
+                        ForEach(Array(tapManager.hiddenBundleIDs).sorted(), id: \.self) { bundleID in
+                            Button("Show \(bundleID)") {
+                                tapManager.unhideApp(bundleID)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "eye.slash")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    .help("Hidden apps")
+                }
+            }
 
             if tapManager.tappedApps.isEmpty {
                 VStack(spacing: 6) {
@@ -292,6 +311,11 @@ struct AppVolumeRow: View {
             .frame(height: 3)
         }
         .padding(.vertical, 4)
+        .contextMenu {
+            Button("Hide \"\(app.name)\"") {
+                tapManager.hideApp(app.id)
+            }
+        }
     }
 }
 

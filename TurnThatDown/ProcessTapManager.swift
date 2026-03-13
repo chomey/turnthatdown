@@ -35,6 +35,7 @@ struct TappedApp: Identifiable {
 
 final class ProcessTapManager: ObservableObject {
     @Published var tappedApps: [TappedApp] = []
+    @Published var hiddenBundleIDs: Set<String> = []
 
     private var activeTaps: [String: AppTap] = [:]
     private var refreshTimer: Timer?
@@ -62,6 +63,11 @@ final class ProcessTapManager: ObservableObject {
 
     init() {
         ttdLog("[TurnThatDown] ProcessTapManager initialized, starting monitoring...")
+
+        // Load hidden apps
+        if let hidden = UserDefaults.standard.stringArray(forKey: "hiddenApps") {
+            hiddenBundleIDs = Set(hidden)
+        }
 
         // Clean up stale aggregate devices from previous runs
         cleanupStaleAggregateDevices()
@@ -120,6 +126,19 @@ final class ProcessTapManager: ObservableObject {
         tappedApps[index].eqBands = EQProcessor.defaultBands
         activeTaps[bundleID]?.eq.reset()
         saveSettings(for: bundleID, volume: tappedApps[index].volume, muted: tappedApps[index].isMuted, outputDeviceUID: tappedApps[index].outputDeviceUID, balance: tappedApps[index].balance, eqBands: tappedApps[index].eqBands, eqEnabled: tappedApps[index].eqEnabled)
+    }
+
+    func hideApp(_ bundleID: String) {
+        hiddenBundleIDs.insert(bundleID)
+        UserDefaults.standard.set(Array(hiddenBundleIDs), forKey: "hiddenApps")
+        removeTap(for: bundleID)
+        tappedApps.removeAll { $0.id == bundleID }
+    }
+
+    func unhideApp(_ bundleID: String) {
+        hiddenBundleIDs.remove(bundleID)
+        UserDefaults.standard.set(Array(hiddenBundleIDs), forKey: "hiddenApps")
+        // Will be picked up on next refresh cycle
     }
 
     func setBalance(_ balance: Float, for bundleID: String) {
@@ -226,6 +245,7 @@ final class ProcessTapManager: ObservableObject {
                 "com.turnthatdown.app",
             ]
             if skipBundleIDs.contains(process.bundleID) { continue }
+            if hiddenBundleIDs.contains(process.bundleID) { continue }
 
             let app = NSRunningApplication(processIdentifier: process.pid)
             let name = app?.localizedName ?? process.bundleID
