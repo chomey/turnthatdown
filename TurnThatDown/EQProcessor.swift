@@ -14,11 +14,11 @@ struct EQBand {
 
 final class EQProcessor {
     static let defaultBands: [EQBand] = [
-        EQBand(frequency: 60, label: "Bass", gain: 0, isShelf: true),
-        EQBand(frequency: 230, label: "Low", gain: 0, isShelf: false),
-        EQBand(frequency: 910, label: "Mid", gain: 0, isShelf: false),
-        EQBand(frequency: 3600, label: "High", gain: 0, isShelf: false),
-        EQBand(frequency: 14000, label: "Air", gain: 0, isShelf: true),
+        EQBand(frequency: 150, label: "Bass", gain: 0, isShelf: true),
+        EQBand(frequency: 400, label: "Low", gain: 0, isShelf: false),
+        EQBand(frequency: 1000, label: "Mid", gain: 0, isShelf: false),
+        EQBand(frequency: 3500, label: "High", gain: 0, isShelf: false),
+        EQBand(frequency: 12000, label: "Air", gain: 0, isShelf: true),
     ]
 
     var bands: [EQBand]
@@ -162,8 +162,8 @@ final class EQProcessor {
                 a2 = (A + 1) - (A - 1) * cosW0 - 2 * sqrtA * alpha
             }
         } else {
-            // Peaking EQ, Q = 1.4
-            let Q: Float = 1.4
+            // Peaking EQ, Q = 0.8 (wide bandwidth for musical control)
+            let Q: Float = 0.8
             let alpha = sinW0 / (2 * Q)
             a0 = 1 + alpha / A
             b0 = 1 + alpha * A
