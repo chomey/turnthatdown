@@ -432,11 +432,11 @@ struct AppEQView: View {
 }
 
 struct EQBandSlider: View {
-    @Binding var gain: Float // -12 to +12 dB
+    @Binding var gain: Float // -24 to +24 dB
     let label: String
 
     private var fraction: CGFloat {
-        CGFloat((gain + 12) / 24) // normalize to 0..1
+        CGFloat((gain + 24) / 48) // normalize to 0..1
     }
 
     var body: some View {
@@ -466,7 +466,7 @@ struct EQBandSlider: View {
                     let fillOffset = gain >= 0 ? -(fillHeight / 2) : (fillHeight / 2)
 
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(abs(gain) > 9 ? Color.orange : Color.accentColor)
+                        .fill(abs(gain) > 18 ? Color.orange : Color.accentColor)
                         .frame(width: 4, height: fillHeight)
                         .offset(y: fillOffset)
 
@@ -482,7 +482,7 @@ struct EQBandSlider: View {
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             let fraction = 1 - Float(value.location.y / geometry.size.height)
-                            gain = max(-12, min(12, fraction * 24 - 12))
+                            gain = max(-24, min(24, fraction * 48 - 24))
                         }
                 )
                 .onTapGesture(count: 2) {

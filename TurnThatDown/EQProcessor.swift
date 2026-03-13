@@ -8,7 +8,7 @@ import Foundation
 struct EQBand {
     let frequency: Float
     let label: String
-    var gain: Float = 0 // dB, -12 to +12
+    var gain: Float = 0 // dB, -24 to +24
     let isShelf: Bool
 }
 
@@ -46,7 +46,7 @@ final class EQProcessor {
 
     func setGain(_ gain: Float, forBand index: Int) {
         guard index >= 0, index < bands.count else { return }
-        bands[index].gain = max(-12, min(12, gain))
+        bands[index].gain = max(-24, min(24, gain))
         recalculateCoefficient(for: index)
     }
 
@@ -162,8 +162,8 @@ final class EQProcessor {
                 a2 = (A + 1) - (A - 1) * cosW0 - 2 * sqrtA * alpha
             }
         } else {
-            // Peaking EQ, Q = 0.8 (wide bandwidth for musical control)
-            let Q: Float = 0.8
+            // Peaking EQ, Q = 0.5 (very wide bandwidth for drastic control)
+            let Q: Float = 0.5
             let alpha = sinW0 / (2 * Q)
             a0 = 1 + alpha / A
             b0 = 1 + alpha * A
