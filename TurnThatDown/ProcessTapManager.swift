@@ -109,7 +109,7 @@ final class ProcessTapManager: ObservableObject {
 
     func setEQGain(_ gain: Float, band: Int, for bundleID: String) {
         guard let index = tappedApps.firstIndex(where: { $0.id == bundleID }) else { return }
-        tappedApps[index].eqBands[band].gain = max(-12, min(12, gain))
+        tappedApps[index].eqBands[band].gain = max(-24, min(24, gain))
         // Auto-enable EQ when any band is adjusted
         if !tappedApps[index].eqEnabled {
             tappedApps[index].eqEnabled = true

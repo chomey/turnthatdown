@@ -3,7 +3,7 @@ import Foundation
 
 // 5-band parametric EQ using biquad filters
 // Bands: 60Hz (low shelf), 230Hz, 910Hz, 3.6kHz, 14kHz (high shelf)
-// Each band has gain in dB (-12 to +12)
+// Each band has gain in dB (-24 to +24)
 
 struct EQBand {
     let frequency: Float
