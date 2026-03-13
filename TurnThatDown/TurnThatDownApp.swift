@@ -46,6 +46,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             rootView: ContentView(audioManager: audioManager, tapManager: tapManager)
         )
 
+        // Check Accessibility permission for global hotkeys
+        checkAccessibilityPermission()
+
         // Initialize global hotkeys
         hotkeyManager = HotkeyManager(tapManager: tapManager, audioManager: audioManager)
 
@@ -161,6 +164,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             }
         } catch {
             // silently ignore — user may not have permission
+        }
+    }
+
+    private func checkAccessibilityPermission() {
+        let trusted = AXIsProcessTrustedWithOptions(
+            [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
+        )
+        if !trusted {
+            // The system will show its own prompt. We also show a brief explanation.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                let alert = NSAlert()
+                alert.messageText = "Accessibility Permission Required"
+                alert.informativeText = "TurnThatDown needs Accessibility access for global keyboard shortcuts to work when other apps are focused.\n\nGo to System Settings → Privacy & Security → Accessibility and enable TurnThatDown."
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "Open System Settings")
+                alert.addButton(withTitle: "Later")
+                let response = alert.runModal()
+                if response == .alertFirstButtonReturn {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+            }
         }
     }
 
