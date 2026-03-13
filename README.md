@@ -1,6 +1,6 @@
 # TurnThatDown
 
-Free, open-source per-app volume control for macOS. Like [SoundSource](https://rogueamoeba.com/soundsource/), but free.
+Free, open-source per-app volume control for macOS.
 
 ![macOS 14.2+](https://img.shields.io/badge/macOS-14.2%2B-blue) ![License](https://img.shields.io/badge/license-MIT-green)
 
