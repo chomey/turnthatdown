@@ -290,8 +290,13 @@ final class ProcessTapManager: ObservableObject {
             }
         }
 
-        // Sort alphabetically by name
-        tappedApps.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        // Sort by audio level (loudest first), then alphabetically for ties
+        tappedApps.sort {
+            if abs($0.audioLevel - $1.audioLevel) > 0.01 {
+                return $0.audioLevel > $1.audioLevel
+            }
+            return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
     }
 
     // MARK: - Process Enumeration

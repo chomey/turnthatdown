@@ -613,21 +613,31 @@ struct VolumeSliderRow: View {
                     commitVolumeEdit()
                 })
                 .font(.caption.monospacedDigit())
-                .frame(width: 40)
+                .frame(width: 44)
                 .multilineTextAlignment(.trailing)
                 .textFieldStyle(.plain)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .background(
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.accentColor.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.accentColor, lineWidth: 1.5)
+                        )
+                )
                 .onExitCommand { isEditing = false }
-                .onAppear {
-                    // Select all text when editing starts
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        NSApp.keyWindow?.makeFirstResponder(nil)
-                    }
-                }
             } else {
                 Text("\(Int(volume * 100))%")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
-                    .frame(width: 40, alignment: .trailing)
+                    .frame(width: 44, alignment: .trailing)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(.quaternary.opacity(0.5))
+                    )
                     .contentShape(Rectangle())
                     .onTapGesture {
                         editText = "\(Int(volume * 100))"
