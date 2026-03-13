@@ -569,12 +569,15 @@ final class ProcessTapManager: ObservableObject {
                     }
                 }
 
-                // Soft clip to prevent harsh distortion when volume > 1.0 or EQ boost
-                if volume > 1.0 || tap.eq.enabled {
+                // Soft clip to prevent harsh distortion when volume > 1.0
+                // Use higher threshold when EQ is active so frequency-selective
+                // boosts aren't flattened back to uniform loudness
+                let clipThreshold: Float = tap.eq.enabled && !tap.eq.isFlat ? 2.0 : 1.0
+                if volume > 1.0 || (tap.eq.enabled && !tap.eq.isFlat) {
                     for j in 0..<totalSamples {
                         let x = outF[j]
-                        if x > 1.0 { outF[j] = 1.0 - 1.0 / (x + 1.0) }
-                        else if x < -1.0 { outF[j] = -1.0 + 1.0 / (-x + 1.0) }
+                        if x > clipThreshold { outF[j] = clipThreshold - 1.0 / (x - clipThreshold + 1.0) }
+                        else if x < -clipThreshold { outF[j] = -clipThreshold + 1.0 / (-x - clipThreshold + 1.0) }
                     }
                 }
             }
