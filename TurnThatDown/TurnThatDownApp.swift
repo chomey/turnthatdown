@@ -172,8 +172,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
         )
         if !trusted {
-            // The system will show its own prompt. We also show a brief explanation.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            // Show explanation and open settings
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
                 let alert = NSAlert()
                 alert.messageText = "Accessibility Permission Required"
                 alert.informativeText = "TurnThatDown needs Accessibility access for global keyboard shortcuts to work when other apps are focused.\n\nGo to System Settings → Privacy & Security → Accessibility and enable TurnThatDown."
@@ -186,6 +186,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                         NSWorkspace.shared.open(url)
                     }
                 }
+
+                // Poll for permission grant so we can activate hotkeys immediately
+                self?.pollForAccessibility()
+            }
+        }
+    }
+
+    private var accessibilityTimer: Timer?
+
+    private func pollForAccessibility() {
+        accessibilityTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            if AXIsProcessTrusted() {
+                timer.invalidate()
+                self?.accessibilityTimer = nil
+                self?.hotkeyManager?.retryEventTap()
             }
         }
     }
