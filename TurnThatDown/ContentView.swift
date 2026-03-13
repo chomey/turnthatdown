@@ -394,9 +394,13 @@ struct AppEQView: View {
         VStack(spacing: 6) {
             HStack {
                 Button(action: { tapManager.toggleEQ(for: app.id) }) {
-                    Text("EQ")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(app.eqEnabled ? .blue : .secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: app.eqEnabled ? "checkmark.circle.fill" : "circle")
+                            .font(.caption2)
+                        Text("EQ")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(app.eqEnabled ? .blue : .secondary)
                 }
                 .buttonStyle(.plain)
 
@@ -422,7 +426,6 @@ struct AppEQView: View {
                 }
             }
             .frame(height: 80)
-            .opacity(app.eqEnabled ? 1.0 : 0.4)
         }
         .padding(.vertical, 4)
     }
