@@ -442,8 +442,8 @@ struct EQBandSlider: View {
     var body: some View {
         VStack(spacing: 2) {
             Text(gain >= 0 ? "+\(Int(gain))" : "\(Int(gain))")
-                .font(.system(size: 8).monospacedDigit())
-                .foregroundStyle(.secondary)
+                .font(.system(size: 9).monospacedDigit())
+                .foregroundStyle(abs(gain) > 0.5 ? .primary : .tertiary)
                 .frame(height: 12)
 
             GeometryReader { geometry in
@@ -491,8 +491,8 @@ struct EQBandSlider: View {
             }
 
             Text(label)
-                .font(.system(size: 8))
-                .foregroundStyle(.tertiary)
+                .font(.system(size: 9).weight(.medium))
+                .foregroundStyle(.secondary)
                 .frame(height: 12)
         }
     }
